@@ -1,2 +1,0 @@
--- AlterTable
-ALTER TABLE "Room" ADD COLUMN     "winAmount" DOUBLE PRECISION NOT NULL DEFAULT 0;
