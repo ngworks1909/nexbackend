@@ -1,0 +1,30 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "npx tsc",
+    "start": "node dist/index.js",
+    "dev": "npx tsc -b && nodemon src/index.ts",
+    "postinstall": "cd ../../ && npm install && cd packages/db && npx prisma generate && cd ../../apps/backend && npx tsc -b"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@prisma/client": "^6.5.0",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.1",
+    "jsonwebtoken": "^9.0.2",
+    "razorpay": "^2.9.6",
+    "zod": "^3.24.1",
+    "ts-node": "10.0.0"
+  },
+  "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.7"
+  }
+}
