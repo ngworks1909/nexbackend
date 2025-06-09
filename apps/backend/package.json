@@ -7,7 +7,7 @@
     "build": "npx tsc",
     "start": "node dist/index.js",
     "dev": "npx tsc -b && nodemon src/index.ts",
-    "postinstall": "cd ../../ && npm install && cd packages/db && npx prisma generate && cd ../../apps/backend && npx tsc -b"
+    "postinstall": "cd ../../packages/db && npx prisma generate && cd ../../apps/backend && npx tsc -b"
   },
   "keywords": [],
   "author": "",
