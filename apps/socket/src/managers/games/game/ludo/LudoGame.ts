@@ -1,4 +1,4 @@
-import { Player } from "../../../../interfaces/GameInterface";
+import { Bot, Player } from "../../../../interfaces/GameInterface";
 import { ludo_enable_pile_selection, ludo_dice_rolled, start_ludo_game, ludo_update_turn, ludo_enable_cell_selection, ludo_update_move, ludo_kill_piece, ludo_player_home, ludo_player_win } from "../../../../messages/message";
 import { appManager } from "../../../main/AppManager";
 import { socketManager } from "../../../socketmanager/SocketManager";
@@ -85,7 +85,7 @@ export class LudoGame {
         })
     }
 
-    private async initializeGame(users: User[]){
+    private async initializeGame(users: (User | Bot)[]){
         const player1: PlayerState = {
             index: 0,
             socketId: users[0].socket.id,

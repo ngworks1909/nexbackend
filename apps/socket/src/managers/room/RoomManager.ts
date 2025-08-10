@@ -1,4 +1,7 @@
+import { LudoBot } from "../../bots/LudoBot";
+import { MemoryBot } from "../../bots/MemoryBot";
 import { prisma } from "../../db/client";
+import { Bot } from "../../interfaces/GameInterface";
 import { room_created } from "../../messages/message";
 import { GameType } from "../../zod/GameValidator";
 import { gameManager } from "../games/GameManager";
@@ -10,6 +13,9 @@ import { createId } from "@paralleldrive/cuid2";
 interface IRoomManager {
     createOrJoinRoom(user: User, gameId: string, gameName: GameType, maxPlayers: number, entryFee: number, winAmount: number): void
 }
+
+const bots = [{userId: "cmcexg9au0000v7ikv4y409vv", username: "Sudhakar"}, {userId: "cmcexuq3a0000v7gcos4jcsf8", username: "Abhi"}, {userId: "cmcf1bo440003v7gcz3s4sa6q", username: "Nithin"}]
+
 
 class RoomManager implements IRoomManager  {
     private static instance: RoomManager;
@@ -45,7 +51,7 @@ class RoomManager implements IRoomManager  {
         return true
     }
 
-    private joinRoom(roomId: string, user: User, gameId: string){
+    private joinRoom(roomId: string, user: User | Bot, gameId: string, bot?: boolean){
         //find the pending room
         const pendingRoom = appManager.rooms.get(roomId);
         //if pending room does not exists return false
@@ -74,7 +80,9 @@ class RoomManager implements IRoomManager  {
                     appManager.pendingRooms.delete(gameId)
                     //create a game object
                     gameManager.createGame(pendingRoom.roomId, pendingRoom.gameType)
-                    appManager.userToRoomMapping.set(user.userId, roomId);
+                    if(!bot){
+                        appManager.userToRoomMapping.set(user.userId, roomId);
+                    }
                     return true;
                 })
             } catch (error) {
@@ -82,7 +90,9 @@ class RoomManager implements IRoomManager  {
             } 
         }
         //set the user playing in the room
-        appManager.userToRoomMapping.set(user.userId, roomId);
+        if(!bot){
+            appManager.userToRoomMapping.set(user.userId, roomId);
+        }
         //return player pushed is true
         return true;
     }
@@ -165,6 +175,16 @@ class RoomManager implements IRoomManager  {
         }
         //else create new room if failed to join or pending room doesnt exists
         this.createRoom(user, gameId, gameName, maxPlayers, entryFee, winAmount);
+    }
+
+    public fillPendingRoom(roomId: string, gameId: string, gameName: GameType){
+        const pendingRoom = appManager.rooms.get(roomId);
+        if(!pendingRoom) return false;
+        const players = pendingRoom.players
+        const maxPlayers = pendingRoom.maxPlayers
+        bots.slice(0, maxPlayers - players.length).forEach((bot) => {
+            this.joinRoom(roomId, gameName === "MEMORY" ? new MemoryBot(bot.userId, bot.username, roomId) : new LudoBot(bot.userId, bot.userId), gameId, true)
+        })
     }
 
 

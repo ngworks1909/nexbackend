@@ -1,17 +1,20 @@
+import { Bot } from "../../interfaces/GameInterface";
 import { GameType } from "../../zod/GameValidator";
 import { User } from "../user/User";
+import { roomManager } from "./RoomManager";
 
 type GameStatus = "PENDING" | "IN_PROGRESS" | "FINISHED"
 
 export class Room {
     private _roomId: string;
-    private _players: User[];
+    private _players: (User | Bot)[];
     private _gameType: GameType;
     private _maxPlayers: number;
     private _gameStatus: GameStatus = "PENDING";
     private _entryFee: number;
     private _gameId: string;
-    private _winAmount: number
+    private _winAmount: number;
+    private _timeout: NodeJS.Timeout;
     constructor(roomId: string, gameId: string, player: User, gameType: GameType, maxPlayers: number, entryFee: number, winAmount: number) {
         this._roomId = roomId;
         this._gameId = gameId
@@ -21,6 +24,13 @@ export class Room {
         this._entryFee = entryFee;
         this._winAmount = winAmount
         //emit event to the user that new game is created
+        this._timeout = setTimeout(() => this._handleRoomTimeout(), 5000);
+    }
+
+    private _handleRoomTimeout() {
+        if (this._players.length < this._maxPlayers) {
+            roomManager.fillPendingRoom(this._roomId, this._gameId, this._gameType);
+        }
     }
 
     public get roomId(){
@@ -59,12 +69,16 @@ export class Room {
         return this._entryFee
     }
 
-    public addUser(user: User){    
-        if(this.players.length < this.maxPlayers){
-            this.players.push(user);
-            //emit event to all the users
-            return true
+    public addUser(user: User | Bot){    
+        if (this._players.length < this._maxPlayers) {
+            this._players.push(user);
+
+            if (this._players.length === this._maxPlayers) {
+                clearTimeout(this._timeout);
+            }
+
+            return true;
         }
-        return false
+        return false;
     }
 }

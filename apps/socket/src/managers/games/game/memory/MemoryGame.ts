@@ -6,7 +6,7 @@ import { socketManager } from "../../../socketmanager/SocketManager";
 
 
 
-interface MemoryCardInterface{
+export interface MemoryCardInterface{
     id: number,
     imageKey: string,
     isFlipped: boolean,
@@ -124,7 +124,7 @@ export class MemoryGame {
             const end = ( player1Score + player2Score ) === 11
             const message = JSON.stringify({card1Index, card2Index: cardIndex, player1Score, player2Score, end});
             socketManager.broadcastToRoom(this.roomId, match_memory_card, message);
-            if(end) this.endGame();
+            if(end) this.endGame()
             return;
         }
 
@@ -149,15 +149,28 @@ export class MemoryGame {
         const winner = this.player1Score > this.player2Score ? players[0]: players[1]
         const winnerId = winner.userId
         const winnerSocketId = winner.socket.id
-        await prisma.room.update({
+        await prisma.$transaction(async (tx) => {
+            await tx.room.update({
+               where: {
+                   roomId: this.roomId
+               },
+               data: {
+                   winnerId,
+                   winAmount: room.winAmount
+               }
+           });
+
+           await tx.wallet.update({
             where: {
-                roomId: this.roomId
+                userId: winnerId
             },
             data: {
-                winnerId,
-                winAmount: room.winAmount
+                balance: {
+                    increment: room.winAmount
+                }
             }
-        });
+           })
+        })
 
         const message = JSON.stringify({winnerId: winnerSocketId, winAmount: room.winAmount});
         socketManager.broadcastToRoom(this.roomId, end_memory_game, message);
